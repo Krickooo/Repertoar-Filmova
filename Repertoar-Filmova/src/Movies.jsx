@@ -1,15 +1,23 @@
 import React from "react";
 
 const Movies = (props) => {
-    return (
-        <div className="container">
-            <div className="image">
-                <img src="https://i.pinimg.com/736x/aa/f7/05/aaf705e06726ce3881288ae4be3ac5fe.jpg"/>
-            </div>
-            <div className="movie">
-                {props.title}, sala: {props.hall}, cena: {props.price}din
-            </div>
+  const displayHall = props.hall ? `sala: ${props.hall}` : "Film još uvek nije u ponudi";
+  const displayPrice = props.price ? props.price : 300;
+
+  return (
+    <div className="container">
+      <div className="image">
+        <img src={props.poster} alt={props.title} />
+        <div className="button">
+          <button onClick={() => props.onReact(props.title, "Like")}>Like</button>
+          <button onClick={() => props.onReact(props.title, "Dislike")}>Dislike</button>
         </div>
-    )
-}
+      </div>
+      <div className="movie">
+        {props.title}, {displayHall}, cena: {displayPrice} din
+      </div>
+    </div>
+  );
+};
+
 export default Movies;
