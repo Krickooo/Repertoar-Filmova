@@ -13,8 +13,14 @@ const Movies = (props) => {
           <button onClick={() => props.onReact(props.title, "Dislike")}>Dislike</button>
         </div>
       </div>
-      <div className="movie">
-        {props.title}, {displayHall}, cena: {displayPrice} din
+      <div className="movie-info">
+        <div className="movie">
+          {props.title}, {displayHall}, cena: {displayPrice} din
+        </div>
+        <div className="reactions">
+          <span>Likes: {props.likes}</span>{" "}
+          <span>Dislikes: {props.dislikes}</span>
+        </div>
       </div>
     </div>
   );
