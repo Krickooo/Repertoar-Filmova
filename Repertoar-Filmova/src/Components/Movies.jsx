@@ -11,6 +11,9 @@ const Movies = (props) => {
         <div className="button">
           <button onClick={() => props.onReact(props.title, "Like")}>Like</button>
           <button onClick={() => props.onReact(props.title, "Dislike")}>Dislike</button>
+          {props.onEdit && (
+            <button onClick={() => props.onEdit(props.movie)}>Izmeni</button>
+          )}
         </div>
       </div>
       <div className="movie-info">

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Movies from "./Movies";
+import MovieForm from "./MovieForm";
 
 const initialMovies = [
   {
@@ -50,6 +51,7 @@ const initialMovies = [
 
 const MoviesPage = () => {
   const [movies, setMovies] = useState(initialMovies);
+  const [editingMovie, setEditingMovie] = useState(null);
 
   const handleReaction = (movieTitle, reaction) => {
     setMovies((prevMovies) =>
@@ -66,13 +68,29 @@ const MoviesPage = () => {
     );
   };
 
+  const handleSaveMovie = (newMovie) => {
+    if (editingMovie) {
+      setMovies((prevMovies) =>
+        prevMovies.map((m) =>
+          m.title === editingMovie.title ? { ...newMovie } : m
+        )
+      );
+      setEditingMovie(null);
+    } else {
+      setMovies((prevMovies) => [...prevMovies, newMovie]);
+    }
+  };
+
   return (
     <div>
       <h1>Repertoar za danas ({new Date().toLocaleDateString("sr-RS")})</h1>
 
+      <MovieForm onSave={handleSaveMovie} movieToEdit={editingMovie} />
+
       {movies.map((m, index) => (
         <div key={index} className="movie-list-item">
           <Movies
+            movie={m}
             title={m.title}
             hall={m.hall}
             price={m.price}
@@ -80,6 +98,7 @@ const MoviesPage = () => {
             likes={m.likes}
             dislikes={m.dislikes}
             onReact={handleReaction}
+            onEdit={setEditingMovie}
           />
         </div>
       ))}
