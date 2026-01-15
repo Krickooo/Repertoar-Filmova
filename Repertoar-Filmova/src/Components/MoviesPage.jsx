@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Movies from "./Movies";
 import MovieForm from "./MovieForm";
 
@@ -49,9 +49,35 @@ const initialMovies = [
   }
 ];
 
+const generateRandomRating = () => Math.floor(Math.random() * 5) + 1;
+
 const MoviesPage = () => {
-  const [movies, setMovies] = useState(initialMovies);
+  const [movies, setMovies] = useState(initialMovies.map(movie => ({
+    ...movie,
+    likes: generateRandomRating(),
+    dislikes: generateRandomRating()
+  })));
   const [editingMovie, setEditingMovie] = useState(null);
+  const [topRatedMovie, setTopRatedMovie] = useState(null);
+
+  useEffect(() => {
+    const findTopRatedMovie = () => {
+      if (movies.length === 0) {
+        setTopRatedMovie(null);
+        return;
+      }
+
+      const best = movies.reduce((max, current) => {
+        const currentRating = current.likes - current.dislikes;
+        const maxRating = max.likes - max.dislikes;
+        return currentRating > maxRating ? current : max;
+      });
+
+      setTopRatedMovie(best);
+    };
+
+    findTopRatedMovie();
+  }, [movies]);
 
   const handleReaction = (movieTitle, reaction) => {
     setMovies((prevMovies) =>
@@ -77,13 +103,36 @@ const MoviesPage = () => {
       );
       setEditingMovie(null);
     } else {
-      setMovies((prevMovies) => [...prevMovies, newMovie]);
+      const movieWithRatings = {
+        ...newMovie,
+        likes: generateRandomRating(),
+        dislikes: generateRandomRating()
+      };
+      setMovies((prevMovies) => [...prevMovies, movieWithRatings]);
     }
   };
 
   return (
     <div>
       <h1>Repertoar za danas ({new Date().toLocaleDateString("sr-RS")})</h1>
+
+      {topRatedMovie && (
+        <div style={{ 
+        }}>
+          <h3>Najbolje ocenjen film:</h3>
+          <Movies
+            movie={topRatedMovie}
+            title={topRatedMovie.title}
+            hall={topRatedMovie.hall}
+            price={topRatedMovie.price}
+            poster={topRatedMovie.poster}
+            likes={topRatedMovie.likes}
+            dislikes={topRatedMovie.dislikes}
+            onReact={handleReaction}
+            isTopRated={true}
+          />
+        </div>
+      )}
 
       <MovieForm onSave={handleSaveMovie} movieToEdit={editingMovie} />
 
