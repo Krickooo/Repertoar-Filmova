@@ -4,7 +4,8 @@ import Header from "./Components/Header";
 import Footer from "./Components/Footer";
 import Home from "./Components/Home";
 import About from "./Components/About";
-import MoviesPage from "./Components/MoviesPage";
+import MoviesList from "./Components/MoviesList";
+import MovieForm from "./Components/MovieForm";
 import "./Styles/main.scss";
 
 const App = () => {
@@ -15,7 +16,9 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about/*" element={<About />} />
-          <Route path="/movies" element={<MoviesPage />} />
+          <Route path="/movies" element={<MoviesList />} />
+          <Route path="/movies/add" element={<MovieForm />} />
+          <Route path="/movies/edit/:id" element={<MovieForm />} />
         </Routes>
       </main>
       <Footer />

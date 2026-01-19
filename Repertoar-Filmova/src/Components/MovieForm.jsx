@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import movieService from "../services/movieService";
 
 const initialFormState = {
   title: "",
@@ -7,22 +9,40 @@ const initialFormState = {
   poster: ""
 };
 
-const MovieForm = ({ onSave, movieToEdit }) => {
+const MovieForm = () => {
   const [formValues, setFormValues] = useState(initialFormState);
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
-    if (movieToEdit) {
-      setFormValues({
-        title: movieToEdit.title ?? "",
-        hall: movieToEdit.hall ?? "",
-        price: movieToEdit.price ?? "",
-        poster: movieToEdit.poster ?? ""
-      });
+    if (id) {
+      loadMovie(id);
     } else {
       setFormValues(initialFormState);
     }
-  }, [movieToEdit]);
+  }, [id]);
+
+  const loadMovie = async (movieId) => {
+    try {
+      setLoading(true);
+      setServerError(null);
+      const movie = await movieService.getMovieById(movieId);
+      setFormValues({
+        title: movie.title ?? "",
+        hall: movie.hall ?? "",
+        price: movie.price ?? "",
+        poster: movie.poster ?? ""
+      });
+    } catch (err) {
+      setServerError("Greška pri učitavanju filma");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,7 +83,7 @@ const MovieForm = ({ onSave, movieToEdit }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) {
       return;
@@ -75,25 +95,67 @@ const MovieForm = ({ onSave, movieToEdit }) => {
       formValues.price === "" ? undefined : Number(formValues.price);
 
     const movieToSave = {
-      likes: movieToEdit?.likes ?? 0,
-      dislikes: movieToEdit?.dislikes ?? 0,
-      title: formValues.title.trim(),
+      name: formValues.title.trim(),
       hall: hallNumber,
       price: priceNumber,
       poster: formValues.poster.trim()
     };
 
-    onSave(movieToSave);
+    try {
+      setLoading(true);
+      setServerError(null);
 
-    setFormValues(initialFormState);
-    setErrors({});
+      if (id) {
+        // Izmena postojećeg filma
+        await movieService.updateMovie(id, {
+          id: parseInt(id),
+          ...movieToSave,
+          likes: 0,
+          dislikes: 0
+        });
+      } else {
+        // Dodavanje novog filma
+        await movieService.addMovie(movieToSave);
+      }
+
+      setFormValues(initialFormState);
+      setErrors({});
+      navigate("/movies");
+    } catch (err) {
+      setServerError(err.message || "Greška pri čuvanju filma");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const isEditing = !!movieToEdit;
+  const isEditing = !!id;
+
+  if (loading && isEditing) {
+    return (
+      <div className="spinner-container">
+        <div className="spinner"></div>
+        <p>Učitavanje filma...</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="movie-form">
       <h2>{isEditing ? "Izmena filma" : "Dodavanje filma"}</h2>
+
+      {serverError && (
+        <div className="error-message">
+          <p>⚠️ {serverError}</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="form-loading">
+          <div className="spinner"></div>
+          <p>Čuvanje...</p>
+        </div>
+      )}
 
       <div className="movie-form__field">
         <label>
@@ -148,7 +210,7 @@ const MovieForm = ({ onSave, movieToEdit }) => {
         </label>
       </div>
 
-      <button type="submit">{isEditing ? "Sačuvaj izmene" : "Dodaj film"}</button>
+      <button type="submit" disabled={loading}>{isEditing ? "Sačuvaj izmene" : "Dodaj film"}</button>
     </form>
   );
 };
